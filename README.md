@@ -19,45 +19,24 @@ This project demonstrates a public-facing version of a vehicle AI validation wor
 
 ## Demo
 
-A working GIF or short video can be placed here.
+### Working Demo
 
-### Preview GIF
+![Working Demo](docs/media/demo.gif)
 
-```markdown
-![Working demo](docs/media/demo.gif)
-```
+### Main Interface
 
-### Preview Video
+![Main Interface](docs/media/screenshot_main.png)
 
-```markdown
-https://github.com/<your-github-id>/realtime-vehicle-ai-validation-studio/assets/<asset-id>/<video-file>
-```
-
-Recommended demo flow to record:
-
-1. Launch the PyQt5 application.
-2. Load the mock A2L/ELF metadata.
-3. Drag measurement signals from the left panel into the canvas.
-4. Add an empty model block.
-5. Double-click the model block and configure:
-   - `.py` script or `.onnx` model path
-   - input count
-   - output count
-6. Connect signal ports to model ports using click-to-connect.
-7. Press **Start**.
-8. Show real-time line activation, where flowing data turns the connection line white.
-9. Open **ALL Graph** and show floating pyqtgraph windows.
-10. Double-click an individual connection line and show the real-time data-flow graph.
-11. Use Ctrl multi-select or rubber-band selection to move/delete multiple blocks.
-
-Suggested media location:
+Expected media structure:
 
 ```text
 docs/
 └── media/
     ├── demo.gif
-    └── demo.mp4
+    └── screenshot_main.png
 ```
+
+If the images do not appear on GitHub, check that the actual file names and README paths match exactly.
 
 ---
 
@@ -82,11 +61,7 @@ This allows the same UI and model workflow to support different transport implem
 
 ## Core Features
 
-### 1. Simulink-like Validation Canvas
-
-The central canvas behaves like a lightweight block-diagram editor.
-
-Supported interactions:
+### Simulink-like Validation Canvas
 
 - Drag/drop signals from the A2L signal list.
 - Add model blocks.
@@ -99,9 +74,7 @@ Supported interactions:
 - Click-to-connect port wiring.
 - Cancel pending connection with `Esc` or right-click.
 
-### 2. Dynamic Model Blocks
-
-Model blocks can be configured at runtime.
+### Dynamic Model Blocks
 
 Double-click a model block to open the configuration dialog:
 
@@ -111,11 +84,9 @@ Double-click a model block to open the configuration dialog:
 - The block graphically updates its input/output ports.
 - Existing invalid connections are pruned when port count is reduced.
 
-### 3. Independent Port Connections
+### Independent Port Connections
 
-Each model input/output has its own graphical port.
-
-This avoids unrealistic behavior where every signal connects to a single shared node port. Each connection stores:
+Each model input/output has its own graphical port. Each connection stores:
 
 ```text
 source block
@@ -125,7 +96,7 @@ destination port index
 data key
 ```
 
-### 4. Real-Time Data-Flow Visualization
+### Real-Time Data-Flow Visualization
 
 During replay:
 
@@ -134,18 +105,16 @@ During replay:
 - Selected inactive lines are highlighted.
 - Double-clicking a line opens a floating pyqtgraph window for real-time data-flow monitoring.
 
-### 5. Floating Graph Windows with pyqtgraph
+### Floating Graph Windows with pyqtgraph
 
-The **ALL Graph** button opens floating real-time graphs.
-
-Example graph groups:
+The **ALL Graph** button opens floating real-time graphs for:
 
 - DAQ / measurement signals
 - model output values
 - ECU write value
 - jitter / replay timing metrics
 
-### 6. Mock A2L and ELF Integration
+### Mock A2L and ELF Integration
 
 The project includes public-safe mock metadata:
 
@@ -156,19 +125,9 @@ The project includes public-safe mock metadata:
 
 No real ECU calibration metadata is included.
 
-### 7. C++ Mock Backend
+### C++ Mock Backend
 
-The repository includes a buildable C++ mock backend to show embedded/backend implementation ability.
-
-The C++ code is intentionally mock-only and does not communicate with real hardware.
-
-It demonstrates:
-
-- backend process structure
-- signal packet generation
-- mock shared-memory style data exchange concept
-- CMake-based build flow
-- separation between frontend and backend responsibilities
+The repository includes a buildable C++ mock backend to demonstrate embedded/backend implementation capability. The C++ code is intentionally mock-only and does not communicate with real hardware.
 
 ---
 
@@ -194,80 +153,27 @@ realtime-vehicle-ai-validation-studio/
 ├── main.py
 ├── requirements.txt
 ├── README.md
-│
 ├── _uiux/
-│   ├── main_handler.py
-│   ├── canvas_scene.py
-│   ├── dialogs.py
-│   ├── plot_window.py
-│   ├── searchable_list.py
-│   └── styles/
-│
 ├── _backend/
-│   ├── __init__.py
-│   ├── interface.py
-│   ├── mock_backend.py
-│   ├── transport/
 │   ├── mock_assets/
-│   │   ├── mock_signals.a2l
-│   │   ├── mock_symbols.elf.txt
-│   │   ├── mock_replay.csv
-│   │   └── models/
-│   │       ├── timeseriesAI_model1.py
-│   │       └── placeholder_model.onnx
-│   │
 │   └── cpp/
-│       ├── CMakeLists.txt
-│       ├── include/
-│       ├── src/
-│       └── vendor/
-│
 ├── _utility/
-│   ├── a2l_parser.py
-│   ├── elf_symbol_parser.py
-│   └── mock_data.py
-│
 ├── tests/
-│   └── test_mock_assets.py
-│
 └── docs/
     └── media/
         ├── demo.gif
-        └── demo.mp4
+        └── screenshot_main.png
 ```
-
-The exact file names may vary slightly depending on the current mock version, but the repository is organized around this structure.
 
 ---
 
 ## Installation
 
-### 1. Clone the repository
-
 ```bash
 git clone https://github.com/<your-github-id>/realtime-vehicle-ai-validation-studio.git
 cd realtime-vehicle-ai-validation-studio
-```
-
-### 2. Create a virtual environment
-
-Windows:
-
-```bash
 python -m venv .venv
 .venv\Scripts\activate
-```
-
-macOS / Linux:
-
-```bash
-python3 -m venv .venv
-source .venv/bin/activate
-```
-
-### 3. Install dependencies
-
-```bash
 pip install -r requirements.txt
 ```
 
@@ -281,25 +187,14 @@ python main.py
 
 If Qt style rendering behaves differently on a local Windows machine, the stylesheet can be disabled for debugging:
 
-Windows CMD:
-
 ```cmd
 set E2E_MOCK_DISABLE_QSS=1
-python main.py
-```
-
-PowerShell:
-
-```powershell
-$env:E2E_MOCK_DISABLE_QSS="1"
 python main.py
 ```
 
 ---
 
 ## Building the C++ Mock Backend
-
-The C++ backend is included as a public-safe mock implementation.
 
 ```bash
 cd _backend/cpp
@@ -308,19 +203,6 @@ cmake --build build
 ```
 
 The Python GUI does not require the C++ executable to run. The C++ mock exists to demonstrate backend structure and C++ implementation capability.
-
-Optional external backend launch can be controlled through an environment variable if supported by the current version:
-
-```bash
-E2E_MOCK_LAUNCH_CPP=1 python main.py
-```
-
-On Windows CMD:
-
-```cmd
-set E2E_MOCK_LAUNCH_CPP=1
-python main.py
-```
 
 ---
 
@@ -359,25 +241,9 @@ Cancel connection:
 - Press `Esc`, or
 - Right-click the canvas.
 
-### Monitor data flow
-
-- Press **Start** to begin synthetic replay.
-- Active data-flow lines turn white.
-- Press **ALL Graph** to open floating graph windows.
-- Double-click an individual connection line to inspect its data-flow graph.
-
-### Multi-select blocks
-
-- Hold `Ctrl` and click blocks to add/remove selection.
-- Drag over an empty canvas area to rubber-band select blocks.
-- Drag one selected block to move the selected group.
-- Press `Delete` or `Backspace` to delete all selected blocks.
-
 ---
 
 ## Architecture Overview
-
-The application is intentionally split into separate layers.
 
 ```text
 +----------------------------------------------------------+
@@ -405,8 +271,6 @@ The application is intentionally split into separate layers.
 | - placeholder model files                                |
 +----------------------------------------------------------+
 ```
-
-The frontend does not depend on a single hardware transport. The backend layer is designed as an adapter boundary so the transport can evolve independently from the validation UI.
 
 ---
 
@@ -439,8 +303,6 @@ The following are synthetic:
 
 ## What This Project Demonstrates
 
-This project is intended to demonstrate the following engineering capabilities:
-
 - PyQt5 desktop tool development
 - C++ backend mock implementation
 - GUI/backend separation
@@ -452,7 +314,6 @@ This project is intended to demonstrate the following engineering capabilities:
 - async replay simulation
 - pyqtgraph-based monitoring
 - public-safe portfolio packaging
-- ability to convert an internal engineering idea into a sanitized demo product
 
 ---
 
@@ -480,8 +341,6 @@ No open-source license is currently granted.
 All rights are reserved by the author unless explicitly stated otherwise.
 
 You may view this repository for portfolio and evaluation purposes, but you may not copy, redistribute, modify, or use the code, architecture, assets, or documentation for commercial or production purposes without written permission.
-
-This project does not contain proprietary company code, real ECU data, production A2L/ELF files, internal model assets, or confidential validation logic. All data and assets are synthetic.
 
 ---
 
