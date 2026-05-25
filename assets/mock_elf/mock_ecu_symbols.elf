@@ -1,0 +1,10 @@
+# Public mock ELF symbol map. This is plain text on purpose; it is NOT a real ELF.
+0x10100000 mock_symbol_01 signal1
+0x10100010 mock_symbol_02 signal2
+0x10100020 mock_symbol_03 signal3
+0x10100030 mock_symbol_04 signal4
+0x10100040 mock_symbol_05 signal5
+0x10100050 mock_symbol_06 signal6
+0x10100060 mock_symbol_07 signal7
+0x10100070 mock_symbol_08 signal8
+0xB004342B ecu_write_value synthetic_output_characteristic

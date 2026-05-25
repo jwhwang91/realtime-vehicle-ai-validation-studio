@@ -1,0 +1,75 @@
+/*
+  Public mock A2L file for portfolio use only.
+  Every signal, address, range, and symbol name below is synthetic.
+*/
+/begin PROJECT MOCK_ECU_PROJECT "Synthetic XCP-Based AI Validation Interface Demo"
+  /begin MODULE MOCK_ECU "Mock ECU module"
+
+    /begin COMPU_METHOD CM_IDENTITY "identity" RAT_FUNC "%6.3" ""
+      COEFFS 0 1 0 0 0 1
+    /end COMPU_METHOD
+
+    /begin MEASUREMENT signal1 "Synthetic measurement stream for public mock UI" ULONG CM_IDENTITY 0 0 -40.0 40.0
+      ECU_ADDRESS 0x10100000
+      PHYS_UNIT "deg"
+      SYMBOL_LINK "mock_symbol_01" 0
+      MOCK_SETTING "0 ~ 10"
+      MOCK_RANGE "-40.0 ~ 40.0"
+    /end MEASUREMENT
+
+    /begin MEASUREMENT signal2 "Synthetic measurement stream for public mock UI" SLONG CM_IDENTITY 0 0 -41.0 41.0
+      ECU_ADDRESS 0x10100010
+      PHYS_UNIT "m/s"
+      SYMBOL_LINK "mock_symbol_02" 0
+      MOCK_SETTING "0 ~ 11"
+      MOCK_RANGE "-41.0 ~ 41.0"
+    /end MEASUREMENT
+
+    /begin MEASUREMENT signal3 "Synthetic measurement stream for public mock UI" UWORD CM_IDENTITY 0 0 -42.0 42.0
+      ECU_ADDRESS 0x10100020
+      PHYS_UNIT "arb"
+      SYMBOL_LINK "mock_symbol_03" 0
+      MOCK_SETTING "0 ~ 12"
+      MOCK_RANGE "-42.0 ~ 42.0"
+    /end MEASUREMENT
+
+    /begin MEASUREMENT signal4 "Synthetic measurement stream for public mock UI" UBYTE CM_IDENTITY 0 0 -43.0 43.0
+      ECU_ADDRESS 0x10100030
+      PHYS_UNIT "deg"
+      SYMBOL_LINK "mock_symbol_04" 0
+      MOCK_SETTING "0 ~ 13"
+      MOCK_RANGE "-43.0 ~ 43.0"
+    /end MEASUREMENT
+
+    /begin MEASUREMENT signal5 "Synthetic measurement stream for public mock UI" FLOAT32_IEEE CM_IDENTITY 0 0 -44.0 44.0
+      ECU_ADDRESS 0x10100040
+      PHYS_UNIT "m/s"
+      SYMBOL_LINK "mock_symbol_05" 0
+      MOCK_SETTING "0 ~ 14"
+      MOCK_RANGE "-44.0 ~ 44.0"
+    /end MEASUREMENT
+
+    /begin MEASUREMENT signal6 "Synthetic measurement stream for public mock UI" SLONG CM_IDENTITY 0 0 -45.0 45.0
+      ECU_ADDRESS 0x10100050
+      PHYS_UNIT "arb"
+      SYMBOL_LINK "mock_symbol_06" 0
+      MOCK_SETTING "0 ~ 15"
+      MOCK_RANGE "-45.0 ~ 45.0"
+    /end MEASUREMENT
+
+    /begin CHARACTERISTIC signal7 "Synthetic characteristic/debug value for public mock UI" VALUE 0x10100060 ULONG CM_IDENTITY 0 0 16
+      PHYS_UNIT "deg"
+      SYMBOL_LINK "mock_symbol_07" 0
+      MOCK_SETTING "0 ~ 16"
+      MOCK_RANGE "-46.0 ~ 46.0"
+    /end CHARACTERISTIC
+
+    /begin CHARACTERISTIC signal8 "Synthetic characteristic/debug value for public mock UI" VALUE 0x10100070 UWORD CM_IDENTITY 0 0 17
+      PHYS_UNIT "m/s"
+      SYMBOL_LINK "mock_symbol_08" 0
+      MOCK_SETTING "0 ~ 17"
+      MOCK_RANGE "-47.0 ~ 47.0"
+    /end CHARACTERISTIC
+
+  /end MODULE
+/end PROJECT

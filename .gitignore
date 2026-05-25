@@ -1,0 +1,21 @@
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+.env
+
+# C++ build output
+_backend/cpp/build/
+_backend/cpp/build-*/
+_backend/cpp/*.sln
+_backend/cpp/*.vcxproj*
+
+# OS / IDE
+.DS_Store
+.idea/
+.vscode/
+
+# Runtime output
+*.log
+*.tmp

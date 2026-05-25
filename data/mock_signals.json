@@ -1,0 +1,10 @@
+[
+  {"name":"signal1","type":"MEASUREMENT","address":"0x10100000","datatype":"ULONG","unit":"deg","variable":"mock_symbol_01"},
+  {"name":"signal2","type":"MEASUREMENT","address":"0x10100010","datatype":"SLONG","unit":"m/s","variable":"mock_symbol_02"},
+  {"name":"signal3","type":"MEASUREMENT","address":"0x10100020","datatype":"UWORD","unit":"arb","variable":"mock_symbol_03"},
+  {"name":"signal4","type":"MEASUREMENT","address":"0x10100030","datatype":"UBYTE","unit":"deg","variable":"mock_symbol_04"},
+  {"name":"signal5","type":"MEASUREMENT","address":"0x10100040","datatype":"FLOAT32_IEEE","unit":"m/s","variable":"mock_symbol_05"},
+  {"name":"signal6","type":"MEASUREMENT","address":"0x10100050","datatype":"SLONG","unit":"arb","variable":"mock_symbol_06"},
+  {"name":"signal7","type":"CHARACTERISTIC","address":"0x10100060","datatype":"ULONG","unit":"deg","variable":"mock_symbol_07"},
+  {"name":"signal8","type":"CHARACTERISTIC","address":"0x10100070","datatype":"UWORD","unit":"m/s","variable":"mock_symbol_08"}
+]
