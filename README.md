@@ -2,8 +2,8 @@
 
 > [!NOTE]
 > This repository is a **public-safe portfolio mock**.  
-> It does **not** contain proprietary company code, real ECU data, production A2L/ELF files, internal model assets, or confidential validation logic.  
-> All signals, addresses, replay values, model files, Simulink paths, and backend data paths are synthetic.
+> It does **not** contain proprietary company code, real ECU data, production A2L/ELF files, internal model assets, confidential validation logic, or production Simulink models.  
+> All signals, addresses, replay values, model files, Simulink paths, bus objects, and backend data paths are synthetic.
 
 A transport-adaptable **PyQt5 + C++ + MATLAB/Simulink vehicle AI validation studio mock** for real-time vehicle signal replay, AI model block validation, MBD-oriented signal interface preparation, and data-flow visualization.
 
@@ -58,6 +58,61 @@ _backend/
 ```
 
 This allows the same UI and model workflow to support different transport implementations later, including Ethernet-based measurement or calibration interfaces.
+
+---
+
+## Development Timeline
+
+This mock project represents a public-safe version of an internal engineering concept that was designed, prototyped, stabilized, and translated into a C++-oriented backend structure within approximately **three months**.
+
+The workflow was intentionally staged:
+
+```text
+architecture definition
+→ Python backend rapid prototype
+→ CAN-style / mock XCP-DAQ feasibility validation
+→ timing, parsing, and frontend/backend data exchange refinement
+→ stabilized backend architecture
+→ C++ mock backend port
+→ public-safe PyQt5/C++/MATLAB portfolio packaging
+```
+
+The goal was not only to build a GUI, but to validate a complete engineering workflow from MBD-side signal preparation to real-time signal replay, model monitoring, backend abstraction, and future transport extensibility.
+
+---
+
+## Engineering Impact
+
+The original concept helped support an AI-transition workflow under constrained hardware conditions.
+
+Instead of waiting for scarce or unavailable Ethernet-based measurement equipment, the system was designed to make practical use of the available CAN-FD/XCP-style path while keeping the backend extensible for future Ethernet integration.
+
+This allowed AI-model input signal flows to be prepared and validated earlier with existing equipment, while preserving a software architecture that could later migrate to a higher-throughput transport layer.
+
+In this public repository, the impact is represented through synthetic data, mock transports, mock A2L/ELF files, and sanitized UI/backend logic.
+
+---
+
+## AI-Assisted Development Workflow
+
+This project followed an **architecture-first, AI-assisted development workflow**.
+
+I first defined the system architecture, signal flow, backend abstraction, UI behavior, MBD preparation concept, validation requirements, and public-safe boundaries. To reduce implementation risk, I initially built a Python backend prototype using CAN-style communication libraries and mock XCP/DAQ concepts. The Python prototype was used to validate the acquisition loop, signal parsing structure, timing behavior, frontend/backend data exchange, and basic feasibility of the real-time validation workflow.
+
+After the backend behavior was validated and stabilized, the same architecture was translated into a C++ mock backend to better represent a production-oriented embedded toolchain. The C++ version keeps the validated runtime structure while making the backend responsibilities clearer:
+
+```text
+Python rapid prototype
+→ CAN-style backend feasibility check
+→ DAQ/update loop validation
+→ signal parsing and timing refinement
+→ stabilized backend architecture
+→ C++ mock backend port
+```
+
+AI coding agents were used as implementation accelerators for prototyping, refactoring, UI iteration, and C++ translation. The architecture decisions, validation strategy, debugging direction, public-safe sanitization, and final integration were engineer-owned.
+
+This workflow reflects how I approach engineering under uncertainty: validate the risky parts quickly, stabilize the architecture, and then port the proven structure into a more production-oriented implementation.
 
 ---
 
@@ -279,6 +334,18 @@ No real ECU calibration metadata is included.
 
 The repository includes a buildable C++ mock backend to demonstrate embedded/backend implementation capability. The C++ code is intentionally mock-only and does not communicate with real hardware.
 
+The C++ backend is structured around:
+
+```text
+transport abstraction
+synthetic DAQ acquisition
+synthetic STIM/write-back path
+signal database
+staged model pipeline
+shared-memory-style snapshot buffer
+realtime loop with jitter metrics
+```
+
 ---
 
 ## Tech Stack
@@ -289,6 +356,7 @@ The repository includes a buildable C++ mock backend to demonstrate embedded/bac
 | Auto code generation concept | Simulink Coder / Embedded Coder-style workflow |
 | Embedded interface concept | Generated C struct / external global data |
 | MBD automation utility | MATLAB script for non-virtual bus detection, data-type sorting, and Simulink bus rewiring |
+| Rapid backend prototype | Python, CAN-style communication libraries, mock XCP/DAQ concepts |
 | GUI | PyQt5 |
 | Real-time plotting | pyqtgraph |
 | Backend mock | Python async worker |
@@ -298,6 +366,8 @@ The repository includes a buildable C++ mock backend to demonstrate embedded/bac
 | Architecture pattern | Transport-adaptable backend abstraction |
 | Communication constraint represented | CAN-FD / XCP-style access |
 | Future extension point | Ethernet transport adapter |
+| Development approach | Architecture-first, AI-assisted rapid prototyping and C++ porting |
+| Timeline represented | Approximately 3-month concept-to-working-tool workflow |
 | Purpose | Public-safe portfolio demo |
 
 ---
@@ -394,19 +464,30 @@ This is a mock utility script. It is intended to demonstrate the workflow concep
                            |
                            v
 +----------------------------------------------------------+
+| Backend Prototype / Validation Layer                     |
+| - Python rapid prototype                                 |
+| - CAN-style backend feasibility check                    |
+| - mock XCP/DAQ loop validation                           |
+| - timing and parsing behavior refinement                 |
++--------------------------+-------------------------------+
+                           |
+                           v
++----------------------------------------------------------+
+| C++ Backend Mock                                         |
+| - transport abstraction                                  |
+| - synthetic DAQ acquisition                              |
+| - synthetic STIM/write-back path                         |
+| - shared-memory-style snapshot buffer                    |
+| - realtime loop / jitter metrics                         |
++--------------------------+-------------------------------+
+                           |
+                           v
++----------------------------------------------------------+
 | PyQt5 Frontend                                           |
 | - signal list                                            |
 | - validation canvas                                      |
 | - model configuration dialog                             |
 | - pyqtgraph monitors                                     |
-+--------------------------+-------------------------------+
-                           |
-                           v
-+----------------------------------------------------------+
-| Backend Interface / Transport Abstraction                |
-| - mock backend                                           |
-| - CAN-FD/XCP-style adapter concept                       |
-| - future Ethernet adapter extension point                |
 +--------------------------+-------------------------------+
                            |
                            v
@@ -437,6 +518,7 @@ This repository intentionally avoids:
 - proprietary model files
 - company-specific validation logic
 - hardware-specific confidential implementation details
+- actual team/project identifiers
 
 The following are synthetic:
 
@@ -462,8 +544,12 @@ The following are synthetic:
 - embedded C struct layout and data alignment awareness
 - automatic bus object generation
 - applying optimized bus ordering back into a Simulink model
+- architecture-first engineering workflow
+- approximately 3-month concept-to-working-tool execution
+- Python rapid prototyping for backend feasibility validation
+- AI-assisted implementation acceleration with engineer-owned architecture
+- C++ backend porting from validated backend structure
 - PyQt5 desktop tool development
-- C++ backend mock implementation
 - GUI/backend separation
 - transport-adaptable architecture
 - real-time signal visualization
@@ -530,6 +616,7 @@ Possible future extensions:
 ```text
 pyqt5
 cpp
+python
 matlab
 simulink
 model-based-design
