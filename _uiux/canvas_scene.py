@@ -1128,6 +1128,53 @@ class DiagramScene(QObject):
             self.request_node_info(node_id)
             self.status_requested.emit(f"Selected {node.node_type.lower()} block: {node.title}")
 
+
+    def runtime_graph(self) -> dict:
+        """Return the current canvas as a backend runtime graph.
+
+        This is intentionally backend-oriented, not UI-oriented: it extracts the
+        MEASUREMENT blocks currently placed on the canvas, CHARACTERISTIC/STIM
+        targets, model blocks, and independent edge connections.  The PyQt
+        frontend serializes this graph to JSON and writes it to the SHM config
+        block before starting the backend.
+        """
+        nodes = []
+        measurements = []
+        characteristics = []
+        models = []
+
+        for node_id, node in self.nodes.items():
+            meta = dict(node.meta or {})
+            entry = {
+                "node_id": node_id,
+                "type": node.node_type,
+                "name": meta.get("name", node.title),
+                "title": node.title,
+                "address": meta.get("address", meta.get("ecuAddress", "N/A")),
+                "datatype": meta.get("datatype", meta.get("dataType", "UNKNOWN")),
+                "unit": meta.get("unit", ""),
+                "symbol": meta.get("variable", meta.get("symbol", node.title)),
+                "model_path": meta.get("model_path", ""),
+                "input_count": node.input_count,
+                "output_count": node.output_count,
+                "position": {"x": node.x(), "y": node.y()},
+            }
+            nodes.append(entry)
+            if node.node_type == "MEASUREMENT":
+                measurements.append(entry)
+            elif node.node_type == "CHARACTERISTIC":
+                characteristics.append(entry)
+            elif node.node_type == "MODEL":
+                models.append(entry)
+
+        return {
+            "nodes": nodes,
+            "measurements": measurements,
+            "characteristics": characteristics,
+            "models": models,
+            "edges": [edge.meta() for edge in self.edges],
+        }
+
     def request_edge_flow(self, edge_id: str) -> None:
         edge = self._edge_by_id(edge_id)
         if not edge:

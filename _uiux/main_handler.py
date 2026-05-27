@@ -435,13 +435,37 @@ class MainWindow(QMainWindow):
         self._apply_responsive_fonts()
 
     def _runtime_config(self) -> BackendRuntimeConfig:
+        # Build backend runtime config from the current canvas, not just from
+        # every signal loaded from the mock A2L.  This mirrors the intended
+        # workflow: user places MEASUREMENT/CHARACTERISTIC blocks and model
+        # blocks on the canvas, then Start serializes that graph into the SHM
+        # config JSON consumed by the backend.
+        graph = self.scene.runtime_graph() if hasattr(self.scene, "runtime_graph") else {}
+        measurement_entries = graph.get("measurements") or list(self.measurements)
+        characteristic_entries = graph.get("characteristics") or list(self.characteristics)
+        model_nodes = graph.get("models") or []
+        model_path = self.files["model_path"]
+        for model in model_nodes:
+            if model.get("model_path"):
+                model_path = model["model_path"]
+                break
+
         return BackendRuntimeConfig(
-            measurement_names=[s["name"] for s in self.measurements],
-            output_names=[s["name"] for s in self.characteristics],
+            measurement_names=[s.get("name", "") for s in measurement_entries if s.get("name")],
+            output_names=[s.get("name", "") for s in characteristic_entries if s.get("name")],
             a2l_path=self.files["a2l_path"],
             elf_path=self.files["elf_path"],
-            model_path=self.files["model_path"],
+            model_path=model_path,
             cycle_ms=self.cycle_ms,
+            measurement_entries=measurement_entries,
+            characteristic_entries=characteristic_entries,
+            canvas_nodes=graph.get("nodes", []),
+            canvas_edges=graph.get("edges", []),
+            xcp_settings={
+                "transport": "MOCK_CANFD_XCP",
+                "cycle_ms": self.cycle_ms,
+                "hardware_context": "VN-series CAN-FD + development ECU in internal prototype; public mock uses synthetic data",
+            },
         )
 
     def _open_file_settings(self):

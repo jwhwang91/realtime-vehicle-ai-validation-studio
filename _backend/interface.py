@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from dataclasses import dataclass, field
-from typing import List
+from typing import Dict, List
 
 from PyQt5.QtCore import QObject, pyqtSignal
 
@@ -16,12 +16,28 @@ class BackendSignals(QObject):
 
 @dataclass
 class BackendRuntimeConfig:
+    """Runtime configuration passed from the PyQt frontend to backend layer.
+
+    The public mock keeps this as a Python dataclass, then serializes the
+    canvas-selected runtime configuration to a JSON payload that is written to
+    the mock SHM config block.  In the internal architecture, the equivalent
+    block is the frontend -> C++ backend command/config boundary.
+    """
+
     measurement_names: List[str] = field(default_factory=list)
     output_names: List[str] = field(default_factory=list)
     a2l_path: str = ""
     elf_path: str = ""
     model_path: str = ""
     cycle_ms: int = 50
+
+    # Detailed, canvas-derived metadata.  These are what the C++ backend would
+    # need to create DAQ/ODT lists from A2L/ELF-like metadata.
+    measurement_entries: List[Dict] = field(default_factory=list)
+    characteristic_entries: List[Dict] = field(default_factory=list)
+    canvas_nodes: List[Dict] = field(default_factory=list)
+    canvas_edges: List[Dict] = field(default_factory=list)
+    xcp_settings: Dict = field(default_factory=dict)
 
 
 class BackendInterface(QObject):

@@ -1,0 +1,222 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+<title>Real-Time Vehicle AI Validation Studio — Public Architecture</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+:root{--bg:#0a0a0f;--bg2:#111118;--bg3:#1a1a24;--bg4:#22222f;--surface:#16161f;--border:#2a2a3a;--border2:#333348;--text-pri:#f0f0f5;--text-sec:#9898b0;--accent:#3b82f6;--accent2:#60a5fa;--green:#34d399;--orange:#fb923c;--purple:#a78bfa;--cyan:#22d3ee;--red:#f87171;--yellow:#fbbf24}
+html{scroll-behavior:smooth}
+body{background:var(--bg);color:var(--text-pri);font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;line-height:1.6}
+nav{position:fixed;top:0;left:0;right:0;z-index:100;display:flex;align-items:center;gap:6px;padding:0 20px;height:52px;background:rgba(10,10,15,.92);backdrop-filter:blur(20px);border-bottom:1px solid var(--border);flex-wrap:wrap}
+.nav-brand{font-weight:800;font-size:14px;color:var(--accent2);margin-right:12px;white-space:nowrap}
+nav a{color:var(--text-sec);text-decoration:none;font-size:11.5px;padding:4px 8px;border-radius:6px}
+nav a:hover{background:var(--bg4);color:var(--text-pri)}
+.hero{padding:112px 24px 52px;text-align:center;position:relative;overflow:hidden}
+.hero:before{content:'';position:absolute;top:0;left:50%;transform:translateX(-50%);width:900px;height:420px;background:radial-gradient(ellipse at 50% 0%,rgba(59,130,246,.18) 0%,transparent 70%);pointer-events:none}
+.hero-pill{display:inline-block;background:rgba(59,130,246,.15);border:1px solid rgba(59,130,246,.4);color:var(--accent2);font-size:11px;font-weight:800;padding:4px 14px;border-radius:20px;letter-spacing:.08em;text-transform:uppercase;margin-bottom:18px}
+.hero h1{font-size:clamp(28px,4.8vw,56px);font-weight:900;letter-spacing:-.03em;background:linear-gradient(135deg,#f0f0f5 0%,#60a5fa 50%,#22d3ee 100%);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;line-height:1.12;margin-bottom:14px}
+.hero p{color:var(--text-sec);font-size:14px;max-width:900px;margin:0 auto}
+.page{max-width:1280px;margin:0 auto;padding:0 24px 80px}
+.section{margin-bottom:64px}
+.section-header{display:flex;align-items:center;gap:14px;margin-bottom:24px}
+.section-num{width:31px;height:31px;background:var(--accent);border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:13px;flex-shrink:0}
+.section-header h2{font-size:22px;font-weight:800;letter-spacing:-.02em}
+.grid-2{display:grid;grid-template-columns:1fr 1fr;gap:14px}.grid-3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:14px}
+@media(max-width:900px){.grid-2,.grid-3{grid-template-columns:1fr}}
+.card{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:20px 22px;position:relative;overflow:hidden}
+.card:hover{background:var(--bg4);transform:translateY(-1px)}
+.card-label{font-size:10px;font-weight:800;letter-spacing:.12em;text-transform:uppercase;color:var(--accent2);margin-bottom:7px}
+.card h3{font-size:14px;font-weight:800;margin-bottom:7px}.card p,.card li{font-size:12.5px;color:var(--text-sec);line-height:1.65}.card ul{padding-left:15px}
+.callout{display:flex;gap:12px;padding:14px 16px;border-radius:10px;border-left:3px solid;margin:14px 0;background:rgba(59,130,246,.08);border-color:var(--accent)}
+.callout strong{display:block;color:var(--text-pri);font-size:13px;margin-bottom:3px}.callout div:last-child{font-size:12.5px;color:var(--text-sec)}
+.warn{background:rgba(251,146,60,.08);border-color:var(--orange)}.ok{background:rgba(52,211,153,.08);border-color:var(--green)}.purple{background:rgba(167,139,250,.08);border-color:var(--purple)}.danger{background:rgba(248,113,113,.08);border-color:var(--red)}
+.stat-row{display:flex;gap:10px;flex-wrap:wrap;margin:14px 0}.stat-card{background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:14px 18px;flex:1;min-width:120px;text-align:center}.s-val{font-size:20px;font-weight:900;color:var(--accent2)}.s-lbl{font-size:10.5px;color:var(--text-sec);margin-top:3px}
+pre{background:var(--bg3);border:1px solid var(--border);border-radius:10px;padding:16px;overflow:auto;color:var(--text-sec);font-size:12px;line-height:1.55}
+.diagram{background:var(--bg2);border:1px solid var(--border);border-radius:14px;padding:18px;margin:16px 0;overflow-x:auto}.diagram-title{font-size:11px;font-weight:800;letter-spacing:.1em;text-transform:uppercase;color:var(--accent2);margin-bottom:12px}
+svg{max-width:100%;height:auto;display:block}
+.nodebox{fill:#16161f;stroke:#333348;stroke-width:1.2}.nodeblue{fill:#10213e;stroke:#3b82f6}.nodegreen{fill:#0d2d22;stroke:#34d399}.nodeorange{fill:#33210f;stroke:#fb923c}.nodepurple{fill:#24183a;stroke:#a78bfa}.nodecyan{fill:#092b34;stroke:#22d3ee}.nodered{fill:#3a1717;stroke:#f87171}.nodeyellow{fill:#352a0a;stroke:#fbbf24}
+.txt{fill:#f0f0f5;font-size:13px;font-weight:700}.sub{fill:#9898b0;font-size:10.8px}.tiny{fill:#9898b0;font-size:9.8px}.line{stroke:#60a5fa;stroke-width:2.2;fill:none;marker-end:url(#arrow)}.line2{stroke:#34d399;stroke-width:2.2;fill:none;marker-end:url(#arrowG)}.line3{stroke:#fb923c;stroke-width:2.2;fill:none;marker-end:url(#arrowO)}.dash{stroke-dasharray:6 5}
+table{width:100%;border-collapse:collapse;font-size:12.5px;border:1px solid var(--border);border-radius:10px;overflow:hidden}th{background:var(--bg3);color:var(--text-sec);padding:9px 13px;text-align:left}td{padding:9px 13px;border-top:1px solid var(--border)}
+footer{text-align:center;padding:28px 24px;border-top:1px solid var(--border);color:var(--text-sec);font-size:11.5px;line-height:1.9}
+</style>
+</head>
+<body>
+<nav>
+  <span class="nav-brand">Vehicle AI Validation Studio</span>
+  <a href="#overview">Overview</a><a href="#system">System</a><a href="#shm">SHM Bridge</a><a href="#runtime">Runtime</a><a href="#cpp">C++</a><a href="#mbd">MBD</a><a href="#ui">UI</a><a href="#safety">Safety</a>
+</nav>
+
+<div class="hero">
+  <div class="hero-pill">Public-Safe Architecture Document</div>
+  <h1>Real-Time Vehicle AI<br/>Validation Studio</h1>
+  <p>Transport-adaptable PyQt5/C++/MATLAB mock platform with SHM-based runtime JSON config exchange, vehicle signal replay, AI model validation, and MBD-side signal preparation.</p>
+</div>
+
+<div class="page">
+<section class="section" id="overview">
+  <div class="section-header"><div class="section-num">1</div><h2>System Overview</h2></div>
+  <div class="callout purple"><div>🚗</div><div><strong>Public-safe version of a hardware-backed validation concept</strong>The internal concept was validated through a Python backend prototype connected to a development ECU using a VN-series CAN-FD interface. This repository replaces all hardware, A2L/ELF files, model assets, signals, channel settings, and ECU data with synthetic mock equivalents.</div></div>
+  <div class="stat-row">
+    <div class="stat-card"><div class="s-val">3 months</div><div class="s-lbl">concept-to-working-tool workflow</div></div>
+    <div class="stat-card"><div class="s-val">SHM JSON</div><div class="s-lbl">frontend/backend config bridge</div></div>
+    <div class="stat-card"><div class="s-val">PyQt5</div><div class="s-lbl">validation studio</div></div>
+    <div class="stat-card"><div class="s-val">C++17</div><div class="s-lbl">mock backend structure</div></div>
+    <div class="stat-card"><div class="s-val">Simulink</div><div class="s-lbl">MBD/code-gen context</div></div>
+  </div>
+</section>
+
+<section class="section" id="system">
+  <div class="section-header"><div class="section-num">2</div><h2>Top-Level Block Diagram</h2></div>
+  <div class="diagram">
+    <div class="diagram-title">Public-safe transport-adaptable architecture</div>
+    <svg width="1180" height="410" viewBox="0 0 1180 410" xmlns="http://www.w3.org/2000/svg">
+      <defs><marker id="arrow" markerWidth="10" markerHeight="10" refX="8" refY="3" orient="auto"><path d="M0,0 L0,6 L9,3 z" fill="#60a5fa"/></marker><marker id="arrowG" markerWidth="10" markerHeight="10" refX="8" refY="3" orient="auto"><path d="M0,0 L0,6 L9,3 z" fill="#34d399"/></marker><marker id="arrowO" markerWidth="10" markerHeight="10" refX="8" refY="3" orient="auto"><path d="M0,0 L0,6 L9,3 z" fill="#fb923c"/></marker></defs>
+      <rect class="nodepurple" x="30" y="95" width="150" height="95" rx="12"/><text class="txt" x="105" y="127" text-anchor="middle">Simulink MBD</text><text class="sub" x="105" y="150" text-anchor="middle">non-virtual bus</text><text class="sub" x="105" y="168" text-anchor="middle">auto code-gen</text>
+      <rect class="nodeblue" x="230" y="95" width="150" height="95" rx="12"/><text class="txt" x="305" y="127" text-anchor="middle">Development ECU</text><text class="sub" x="305" y="150" text-anchor="middle">generated C layout</text><text class="sub" x="305" y="168" text-anchor="middle">runtime signals</text>
+      <rect class="nodeorange" x="430" y="95" width="150" height="95" rx="12"/><text class="txt" x="505" y="127" text-anchor="middle">VN-series</text><text class="sub" x="505" y="150" text-anchor="middle">CAN-FD interface</text><text class="sub" x="505" y="168" text-anchor="middle">hardware-backed check</text>
+      <rect class="nodegreen" x="635" y="65" width="170" height="70" rx="12"/><text class="txt" x="720" y="97" text-anchor="middle">Python Prototype</text><text class="sub" x="720" y="118" text-anchor="middle">feasibility validation</text>
+      <rect class="nodecyan" x="635" y="165" width="170" height="70" rx="12"/><text class="txt" x="720" y="197" text-anchor="middle">C++ Backend</text><text class="sub" x="720" y="218" text-anchor="middle">runtime structure</text>
+      <rect class="nodeyellow" x="850" y="115" width="145" height="90" rx="12"/><text class="txt" x="923" y="147" text-anchor="middle">SHM Bridge</text><text class="sub" x="923" y="170" text-anchor="middle">JSON config</text><text class="sub" x="923" y="188" text-anchor="middle">data snapshot</text>
+      <rect class="nodebox" x="1035" y="115" width="125" height="90" rx="12"/><text class="txt" x="1098" y="147" text-anchor="middle">PyQt5 UI</text><text class="sub" x="1098" y="170" text-anchor="middle">canvas</text><text class="sub" x="1098" y="188" text-anchor="middle">graphs</text>
+      <rect class="nodered" x="635" y="290" width="210" height="70" rx="12"/><text class="txt" x="740" y="322" text-anchor="middle">Future Ethernet Adapter</text><text class="sub" x="740" y="343" text-anchor="middle">same backend boundary</text>
+      <path class="line" d="M180 142 C205 142 205 142 230 142"/><path class="line" d="M380 142 C405 142 405 142 430 142"/><path class="line" d="M580 130 C605 112 610 100 635 100"/><path class="line" d="M580 155 C605 188 610 200 635 200"/><path class="line2" d="M805 200 C825 185 830 175 850 170"/><path class="line2" d="M995 160 C1010 160 1020 160 1035 160"/><path class="line3 dash" d="M740 290 C770 250 820 220 850 190"/>
+    </svg>
+  </div>
+</section>
+
+<section class="section" id="shm">
+  <div class="section-header"><div class="section-num">3</div><h2>SHM JSON Runtime Config Bridge</h2></div>
+  <div class="diagram">
+    <div class="diagram-title">Start button exports canvas state into backend runtime config</div>
+    <svg width="1180" height="520" viewBox="0 0 1180 520" xmlns="http://www.w3.org/2000/svg">
+      <defs><marker id="arrowS" markerWidth="10" markerHeight="10" refX="8" refY="3" orient="auto"><path d="M0,0 L0,6 L9,3 z" fill="#60a5fa"/></marker><marker id="arrowSG" markerWidth="10" markerHeight="10" refX="8" refY="3" orient="auto"><path d="M0,0 L0,6 L9,3 z" fill="#34d399"/></marker></defs>
+      <rect class="nodebox" x="40" y="55" width="170" height="115" rx="12"/><text class="txt" x="125" y="88" text-anchor="middle">PyQt5 Canvas</text><text class="sub" x="125" y="112" text-anchor="middle">measurement blocks</text><text class="sub" x="125" y="132" text-anchor="middle">characteristics</text><text class="sub" x="125" y="152" text-anchor="middle">model nodes / edges</text>
+      <rect class="nodepurple" x="280" y="55" width="185" height="115" rx="12"/><text class="txt" x="372" y="88" text-anchor="middle">Runtime Config</text><text class="sub" x="372" y="112" text-anchor="middle">xcp settings</text><text class="sub" x="372" y="132" text-anchor="middle">DAQ signal list</text><text class="sub" x="372" y="152" text-anchor="middle">STIM/model graph</text>
+      <rect class="nodeyellow" x="535" y="55" width="185" height="115" rx="12"/><text class="txt" x="627" y="88" text-anchor="middle">JSON Payload</text><text class="sub" x="627" y="112" text-anchor="middle">public-safe schema</text><text class="sub" x="627" y="132" text-anchor="middle">address/type/unit</text><text class="sub" x="627" y="152" text-anchor="middle">nodes and edges</text>
+      <rect class="nodecyan" x="790" y="55" width="170" height="115" rx="12"/><text class="txt" x="875" y="88" text-anchor="middle">SHM Config Block</text><text class="sub" x="875" y="112" text-anchor="middle">seq begin/end</text><text class="sub" x="875" y="132" text-anchor="middle">config length</text><text class="sub" x="875" y="152" text-anchor="middle">json bytes</text>
+      <rect class="nodegreen" x="1020" y="55" width="130" height="115" rx="12"/><text class="txt" x="1085" y="88" text-anchor="middle">C++ Backend</text><text class="sub" x="1085" y="112" text-anchor="middle">read config</text><text class="sub" x="1085" y="132" text-anchor="middle">build DAQ</text><text class="sub" x="1085" y="152" text-anchor="middle">run loop</text>
+
+      <rect class="nodegreen" x="1020" y="315" width="130" height="90" rx="12"/><text class="txt" x="1085" y="347" text-anchor="middle">DAQ/STIM</text><text class="sub" x="1085" y="370" text-anchor="middle">synthetic mock</text><text class="sub" x="1085" y="388" text-anchor="middle">or HW adapter</text>
+      <rect class="nodecyan" x="790" y="315" width="170" height="90" rx="12"/><text class="txt" x="875" y="347" text-anchor="middle">SHM Data Block</text><text class="sub" x="875" y="370" text-anchor="middle">signal values</text><text class="sub" x="875" y="388" text-anchor="middle">model outputs</text>
+      <rect class="nodebox" x="535" y="315" width="185" height="90" rx="12"/><text class="txt" x="627" y="347" text-anchor="middle">Frontend Reader</text><text class="sub" x="627" y="370" text-anchor="middle">coherent snapshot</text><text class="sub" x="627" y="388" text-anchor="middle">seqlock convention</text>
+      <rect class="nodebox" x="280" y="315" width="185" height="90" rx="12"/><text class="txt" x="372" y="347" text-anchor="middle">UI Update</text><text class="sub" x="372" y="370" text-anchor="middle">block values</text><text class="sub" x="372" y="388" text-anchor="middle">white flow lines</text>
+      <rect class="nodebox" x="40" y="315" width="170" height="90" rx="12"/><text class="txt" x="125" y="347" text-anchor="middle">pyqtgraph</text><text class="sub" x="125" y="370" text-anchor="middle">floating monitors</text><text class="sub" x="125" y="388" text-anchor="middle">line double-click</text>
+
+      <path class="line" marker-end="url(#arrowS)" d="M210 112 C240 112 250 112 280 112"/><path class="line" marker-end="url(#arrowS)" d="M465 112 C495 112 505 112 535 112"/><path class="line" marker-end="url(#arrowS)" d="M720 112 C750 112 760 112 790 112"/><path class="line" marker-end="url(#arrowS)" d="M960 112 C985 112 995 112 1020 112"/>
+      <path class="line2" marker-end="url(#arrowSG)" d="M1085 170 C1085 220 1085 265 1085 315"/><path class="line2" marker-end="url(#arrowSG)" d="M1020 360 C995 360 985 360 960 360"/><path class="line2" marker-end="url(#arrowSG)" d="M790 360 C760 360 750 360 720 360"/><path class="line2" marker-end="url(#arrowSG)" d="M535 360 C505 360 495 360 465 360"/><path class="line2" marker-end="url(#arrowSG)" d="M280 360 C250 360 240 360 210 360"/>
+    </svg>
+  </div>
+  <pre>{
+  "transport": {
+    "type": "mock_xcp_canfd",
+    "hardware": "VN-series concept",
+    "mode": "public_safe_mock"
+  },
+  "daq": [
+    {"name": "signal1", "address": "0x10100000", "data_type": "FLOAT32", "unit": "km/h"}
+  ],
+  "stim": [
+    {"name": "ecu_write_value", "address": "0xB004342B", "data_type": "FLOAT32"}
+  ],
+  "models": [
+    {"id": "model_1", "path": "mock_model.py", "inputs": 6, "outputs": 2}
+  ],
+  "canvas": {
+    "nodes": [],
+    "edges": []
+  }
+}</pre>
+</section>
+
+<section class="section" id="runtime">
+  <div class="section-header"><div class="section-num">4</div><h2>Runtime Data-Flow Diagram</h2></div>
+  <div class="diagram">
+    <div class="diagram-title">DAQ → model inference → STIM/write-back → SHM snapshot</div>
+    <svg width="1180" height="390" viewBox="0 0 1180 390" xmlns="http://www.w3.org/2000/svg">
+      <defs><marker id="arrowR" markerWidth="10" markerHeight="10" refX="8" refY="3" orient="auto"><path d="M0,0 L0,6 L9,3 z" fill="#60a5fa"/></marker><marker id="arrowRG" markerWidth="10" markerHeight="10" refX="8" refY="3" orient="auto"><path d="M0,0 L0,6 L9,3 z" fill="#34d399"/></marker></defs>
+      <rect class="nodeblue" x="35" y="65" width="150" height="80" rx="12"/><text class="txt" x="110" y="98" text-anchor="middle">Mock ECU</text><text class="sub" x="110" y="120" text-anchor="middle">synthetic DAQ frames</text>
+      <rect class="nodeorange" x="245" y="65" width="150" height="80" rx="12"/><text class="txt" x="320" y="98" text-anchor="middle">Transport Adapter</text><text class="sub" x="320" y="120" text-anchor="middle">CAN-FD/XCP-style</text>
+      <rect class="nodegreen" x="455" y="65" width="150" height="80" rx="12"/><text class="txt" x="530" y="98" text-anchor="middle">DAQ Parser</text><text class="sub" x="530" y="120" text-anchor="middle">raw → physical</text>
+      <rect class="nodecyan" x="685" y="45" width="180" height="120" rx="12"/><text class="txt" x="775" y="78" text-anchor="middle">SHM Data Block</text><text class="sub" x="775" y="102" text-anchor="middle">measurement values</text><text class="sub" x="775" y="122" text-anchor="middle">model outputs</text><text class="sub" x="775" y="142" text-anchor="middle">jitter metrics</text>
+      <rect class="nodepurple" x="940" y="65" width="175" height="80" rx="12"/><text class="txt" x="1028" y="98" text-anchor="middle">PyQt5 Frontend</text><text class="sub" x="1028" y="120" text-anchor="middle">canvas + graphs</text>
+      <rect class="nodebox" x="455" y="260" width="170" height="85" rx="12"/><text class="txt" x="540" y="293" text-anchor="middle">Model Pipeline</text><text class="sub" x="540" y="316" text-anchor="middle">.py / ONNX mock</text>
+      <rect class="nodegreen" x="945" y="260" width="165" height="85" rx="12"/><text class="txt" x="1028" y="293" text-anchor="middle">STIM Writer</text><text class="sub" x="1028" y="316" text-anchor="middle">mock write-back</text>
+      <path class="line" marker-end="url(#arrowR)" d="M185 105 C210 105 220 105 245 105"/><path class="line" marker-end="url(#arrowR)" d="M395 105 C420 105 430 105 455 105"/><path class="line" marker-end="url(#arrowR)" d="M605 105 C635 105 655 105 685 105"/><path class="line" marker-end="url(#arrowR)" d="M865 105 C895 105 910 105 940 105"/>
+      <path class="line2" marker-end="url(#arrowRG)" d="M775 165 C720 215 610 230 540 260"/><path class="line2" marker-end="url(#arrowRG)" d="M625 302 C760 302 830 302 945 302"/><path class="line2" marker-end="url(#arrowRG)" d="M1028 260 C1045 210 1045 170 1032 145"/>
+    </svg>
+  </div>
+</section>
+
+<section class="section" id="cpp">
+  <div class="section-header"><div class="section-num">5</div><h2>C++ Backend Block Diagram</h2></div>
+  <div class="diagram">
+    <div class="diagram-title">Backend reads config from SHM and publishes data snapshots</div>
+    <svg width="1180" height="470" viewBox="0 0 1180 470" xmlns="http://www.w3.org/2000/svg">
+      <defs><marker id="arrowC" markerWidth="10" markerHeight="10" refX="8" refY="3" orient="auto"><path d="M0,0 L0,6 L9,3 z" fill="#60a5fa"/></marker></defs>
+      <rect class="nodebox" x="40" y="55" width="160" height="70" rx="12"/><text class="txt" x="120" y="87" text-anchor="middle">main.cpp</text><text class="sub" x="120" y="108" text-anchor="middle">process lifecycle</text>
+      <rect class="nodeyellow" x="270" y="55" width="175" height="70" rx="12"/><text class="txt" x="357" y="87" text-anchor="middle">Config Reader</text><text class="sub" x="357" y="108" text-anchor="middle">SHM JSON parse</text>
+      <rect class="nodeblue" x="515" y="55" width="170" height="70" rx="12"/><text class="txt" x="600" y="87" text-anchor="middle">RealtimeLoop</text><text class="sub" x="600" y="108" text-anchor="middle">period / jitter</text>
+      <rect class="nodeorange" x="760" y="35" width="180" height="70" rx="12"/><text class="txt" x="850" y="67" text-anchor="middle">ITransport</text><text class="sub" x="850" y="88" text-anchor="middle">adapter boundary</text>
+      <rect class="nodeorange" x="760" y="125" width="180" height="70" rx="12"/><text class="txt" x="850" y="157" text-anchor="middle">MockXcpTransport</text><text class="sub" x="850" y="178" text-anchor="middle">DAQ / STIM mock</text>
+      <rect class="nodegreen" x="515" y="195" width="170" height="70" rx="12"/><text class="txt" x="600" y="227" text-anchor="middle">SignalDatabase</text><text class="sub" x="600" y="248" text-anchor="middle">name / type / address</text>
+      <rect class="nodegreen" x="760" y="215" width="180" height="70" rx="12"/><text class="txt" x="850" y="247" text-anchor="middle">ModelPipeline</text><text class="sub" x="850" y="268" text-anchor="middle">synthetic stages</text>
+      <rect class="nodecyan" x="515" y="335" width="195" height="70" rx="12"/><text class="txt" x="612" y="367" text-anchor="middle">SHM Data Writer</text><text class="sub" x="612" y="388" text-anchor="middle">publish coherent snapshot</text>
+      <rect class="nodepurple" x="795" y="335" width="165" height="70" rx="12"/><text class="txt" x="877" y="367" text-anchor="middle">PyQt5 Reader</text><text class="sub" x="877" y="388" text-anchor="middle">canvas / graphs</text>
+      <rect class="nodered" x="1000" y="125" width="145" height="70" rx="12"/><text class="txt" x="1072" y="157" text-anchor="middle">Future Adapter</text><text class="sub" x="1072" y="178" text-anchor="middle">Ethernet path</text>
+      <path class="line" marker-end="url(#arrowC)" d="M200 90 C230 90 240 90 270 90"/><path class="line" marker-end="url(#arrowC)" d="M445 90 C475 90 485 90 515 90"/><path class="line" marker-end="url(#arrowC)" d="M685 90 C715 75 730 70 760 70"/><path class="line" marker-end="url(#arrowC)" d="M685 105 C715 135 730 155 760 160"/><path class="line" marker-end="url(#arrowC)" d="M600 125 C600 155 600 165 600 195"/><path class="line" marker-end="url(#arrowC)" d="M685 230 C715 238 730 245 760 250"/><path class="line" marker-end="url(#arrowC)" d="M850 285 C790 315 720 340 710 370"/><path class="line" marker-end="url(#arrowC)" d="M710 370 C745 370 760 370 795 370"/><path class="line dash" marker-end="url(#arrowC)" d="M940 160 C960 160 980 160 1000 160"/>
+    </svg>
+  </div>
+</section>
+
+<section class="section" id="mbd">
+  <div class="section-header"><div class="section-num">6</div><h2>MATLAB / Simulink Bus Optimization Diagram</h2></div>
+  <div class="diagram">
+    <div class="diagram-title">MBD-side preparation before generated C interface</div>
+    <svg width="1180" height="360" viewBox="0 0 1180 360" xmlns="http://www.w3.org/2000/svg">
+      <defs><marker id="arrowM" markerWidth="10" markerHeight="10" refX="8" refY="3" orient="auto"><path d="M0,0 L0,6 L9,3 z" fill="#60a5fa"/></marker></defs>
+      <rect class="nodepurple" x="35" y="70" width="155" height="85" rx="12"/><text class="txt" x="112" y="102" text-anchor="middle">Model Block Path</text><text class="sub" x="112" y="125" text-anchor="middle">AI input interface</text>
+      <rect class="nodeblue" x="250" y="70" width="155" height="85" rx="12"/><text class="txt" x="327" y="102" text-anchor="middle">Find Bus Creator</text><text class="sub" x="327" y="125" text-anchor="middle">non-virtual bus</text>
+      <rect class="nodegreen" x="465" y="70" width="155" height="85" rx="12"/><text class="txt" x="542" y="102" text-anchor="middle">Read Data Types</text><text class="sub" x="542" y="125" text-anchor="middle">compiled signal info</text>
+      <rect class="nodeorange" x="680" y="70" width="155" height="85" rx="12"/><text class="txt" x="757" y="102" text-anchor="middle">Sort Top-Down</text><text class="sub" x="757" y="125" text-anchor="middle">padding-aware order</text>
+      <rect class="nodecyan" x="895" y="70" width="220" height="85" rx="12"/><text class="txt" x="1005" y="102" text-anchor="middle">Create Bus Object</text><text class="sub" x="1005" y="125" text-anchor="middle">workspace Simulink.Bus</text>
+      <rect class="nodered" x="465" y="230" width="250" height="85" rx="12"/><text class="txt" x="590" y="262" text-anchor="middle">Apply Order Back to Model</text><text class="sub" x="590" y="285" text-anchor="middle">reconnect Bus Creator input lines</text>
+      <rect class="nodebox" x="800" y="230" width="230" height="85" rx="12"/><text class="txt" x="915" y="262" text-anchor="middle">Generated C Struct</text><text class="sub" x="915" y="285" text-anchor="middle">more predictable layout</text>
+      <path class="line" marker-end="url(#arrowM)" d="M190 112 C215 112 225 112 250 112"/><path class="line" marker-end="url(#arrowM)" d="M405 112 C430 112 440 112 465 112"/><path class="line" marker-end="url(#arrowM)" d="M620 112 C645 112 655 112 680 112"/><path class="line" marker-end="url(#arrowM)" d="M835 112 C860 112 870 112 895 112"/><path class="line" marker-end="url(#arrowM)" d="M1005 155 C965 205 780 235 715 272"/><path class="line" marker-end="url(#arrowM)" d="M715 272 C745 272 770 272 800 272"/>
+    </svg>
+  </div>
+</section>
+
+<section class="section" id="ui">
+  <div class="section-header"><div class="section-num">7</div><h2>PyQt5 Canvas Block Diagram</h2></div>
+  <div class="diagram">
+    <div class="diagram-title">Signal list → canvas blocks → runtime JSON → backend</div>
+    <svg width="1180" height="390" viewBox="0 0 1180 390" xmlns="http://www.w3.org/2000/svg">
+      <defs><marker id="arrowU" markerWidth="10" markerHeight="10" refX="8" refY="3" orient="auto"><path d="M0,0 L0,6 L9,3 z" fill="#60a5fa"/></marker></defs>
+      <rect class="nodebox" x="35" y="55" width="165" height="280" rx="12"/><text class="txt" x="118" y="87" text-anchor="middle">A2L Signal List</text><text class="sub" x="118" y="117" text-anchor="middle">MEASUREMENT</text><text class="sub" x="118" y="137" text-anchor="middle">CHARACTERISTIC</text><text class="sub" x="118" y="157" text-anchor="middle">search / drag-drop</text>
+      <rect class="nodeblue" x="285" y="65" width="135" height="62" rx="10"/><text class="txt" x="352" y="92" text-anchor="middle">signal1</text><text class="sub" x="352" y="111" text-anchor="middle">measurement</text>
+      <rect class="nodeblue" x="285" y="155" width="135" height="62" rx="10"/><text class="txt" x="352" y="182" text-anchor="middle">signal2</text><text class="sub" x="352" y="201" text-anchor="middle">measurement</text>
+      <rect class="nodegreen" x="520" y="110" width="160" height="110" rx="12"/><text class="txt" x="600" y="145" text-anchor="middle">Model Block</text><text class="sub" x="600" y="169" text-anchor="middle">.py / ONNX</text><text class="sub" x="600" y="189" text-anchor="middle">dynamic I/O ports</text>
+      <rect class="nodeorange" x="750" y="127" width="150" height="75" rx="12"/><text class="txt" x="825" y="158" text-anchor="middle">Characteristic</text><text class="sub" x="825" y="179" text-anchor="middle">write target</text>
+      <rect class="nodeyellow" x="965" y="100" width="175" height="130" rx="12"/><text class="txt" x="1052" y="134" text-anchor="middle">Runtime JSON</text><text class="sub" x="1052" y="158" text-anchor="middle">selected signals</text><text class="sub" x="1052" y="178" text-anchor="middle">models / edges</text><text class="sub" x="1052" y="198" text-anchor="middle">DAQ/STIM config</text>
+      <path class="line" marker-end="url(#arrowU)" d="M200 195 C235 120 250 95 285 95"/><path class="line" marker-end="url(#arrowU)" d="M200 195 C235 185 250 185 285 185"/><path class="line" marker-end="url(#arrowU)" d="M420 96 C465 110 490 135 520 148"/><path class="line" marker-end="url(#arrowU)" d="M420 186 C465 186 490 180 520 180"/><path class="line" marker-end="url(#arrowU)" d="M680 165 C710 165 720 165 750 165"/><path class="line" marker-end="url(#arrowU)" d="M900 165 C925 165 940 165 965 165"/>
+    </svg>
+  </div>
+</section>
+
+<section class="section" id="safety">
+  <div class="section-header"><div class="section-num">8</div><h2>Public-Safe Boundary</h2></div>
+  <div class="callout danger"><div>🔒</div><div><strong>No proprietary assets are included</strong>This repository does not include real ECU data, production A2L/ELF files, internal Simulink paths, real CAN identifiers, hardware channel settings, proprietary model assets, or company-specific validation logic.</div></div>
+  <table>
+    <tr><th>Internal concept</th><th>Public repo replacement</th></tr>
+    <tr><td>Real ECU and channel setup</td><td>Mock transport and synthetic replay</td></tr>
+    <tr><td>Production A2L/ELF metadata</td><td>Synthetic A2L/ELF-like files</td></tr>
+    <tr><td>Internal signal/model names</td><td>signal1~N and placeholder model files</td></tr>
+    <tr><td>Runtime backend command/config</td><td>Public-safe runtime JSON schema over mock SHM block</td></tr>
+  </table>
+</section>
+</div>
+<footer>Real-Time Vehicle AI Validation Studio — Public-safe architecture document<br/>Synthetic data only. No proprietary company code, ECU data, production A2L/ELF, hardware settings, or confidential model assets.</footer>
+</body>
+</html>

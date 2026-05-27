@@ -2,18 +2,18 @@
 
 > [!NOTE]
 > This repository is a **public-safe portfolio mock**.  
-> It does **not** contain proprietary company code, real ECU data, production A2L/ELF files, internal model assets, confidential validation logic, or production Simulink models.  
-> All signals, addresses, replay values, model files, Simulink paths, bus objects, and backend data paths are synthetic.
+> It does **not** contain proprietary company code, real ECU data, production A2L/ELF files, internal model assets, confidential validation logic, hardware channel settings, real CAN identifiers, or production Simulink models.  
+> All signals, addresses, replay values, model files, Simulink paths, bus objects, runtime JSON payloads, and backend data paths are synthetic.
 
-A transport-adaptable **PyQt5 + C++ + MATLAB/Simulink vehicle AI validation studio mock** for real-time vehicle signal replay, AI model block validation, MBD-oriented signal interface preparation, and data-flow visualization.
+A transport-adaptable **PyQt5 + C++ + MATLAB/Simulink vehicle AI validation studio mock** for real-time vehicle signal replay, AI model block validation, MBD-oriented signal interface preparation, SHM-based frontend/backend configuration exchange, and data-flow visualization.
 
-This project demonstrates a public-facing version of a vehicle AI validation workflow originally designed under constrained hardware conditions. The available communication path was CAN-FD/XCP-style access, but the backend was intentionally separated behind a transport abstraction layer so that future Ethernet-based interfaces can be integrated without redesigning the UI, signal workflow, model validation canvas, or MBD preparation utilities.
+This project demonstrates a public-facing version of a vehicle AI validation workflow originally designed under constrained hardware conditions. The available communication path was CAN-FD/XCP-style access, but the backend was intentionally separated behind a transport abstraction layer so that future Ethernet-based interfaces can be integrated without redesigning the UI, signal workflow, model validation canvas, SHM protocol, or MBD preparation utilities.
 
 ---
 
 ## Repository Description
 
-**Public-safe portfolio version of a transport-adaptable real-time vehicle AI validation studio using synthetic A2L, ELF, replay, model, and MATLAB/Simulink MBD utility data.**
+**Public-safe portfolio version of a transport-adaptable real-time vehicle AI validation studio using synthetic A2L, ELF, replay, model, MATLAB/Simulink MBD utility data, and SHM-based runtime configuration exchange.**
 
 ---
 
@@ -36,7 +36,17 @@ docs/
     └── screenshot_main.png
 ```
 
-If the images do not appear on GitHub, check that the actual file names and README paths match exactly.
+---
+
+## Architecture Documents
+
+Public-safe architecture documentation is included here:
+
+[Open public architecture document](docs/architecture_public.html)
+
+`architecture_public.html` contains block diagrams for the overall system, runtime data flow, C++ backend, SHM JSON bridge, MATLAB/Simulink bus optimization, and PyQt5 validation canvas.
+
+`shm_runtime_protocol.md` describes how the frontend exports the current canvas state as runtime JSON and how the backend reads that configuration through a shared-memory-style boundary.
 
 ---
 
@@ -53,6 +63,7 @@ The key design decision was to separate the GUI and validation workflow from the
 ```text
 _backend/
 ├── mock backend
+├── SHM runtime config bridge
 ├── CAN-FD / XCP-style adapter concept
 └── future Ethernet adapter extension point
 ```
@@ -61,23 +72,101 @@ This allows the same UI and model workflow to support different transport implem
 
 ---
 
+## Intended Runtime Flow
+
+The important runtime concept is that the frontend does not simply start a fixed backend.
+
+The user builds the validation workflow on the PyQt canvas first:
+
+```text
+drag MEASUREMENT blocks
+drag CHARACTERISTIC blocks
+add model blocks
+load .py / .onnx model files
+connect ports
+press Start
+```
+
+When **Start** is pressed, the Python frontend exports the current canvas state into a runtime JSON configuration.
+
+That runtime JSON contains the information the backend needs to configure the acquisition/write-back loop:
+
+```text
+XCP / transport settings
+selected measurement signals
+selected characteristic targets
+signal addresses
+data types
+units
+model blocks
+model file paths
+node graph
+edge graph
+DAQ/STIM setup inputs
+```
+
+The runtime JSON is written into a shared-memory-style configuration block. The C++ backend reads that config block, builds the DAQ/STIM setup concept, runs the real-time acquisition loop, and publishes the latest values back through a shared-memory-style data snapshot.
+
+In the public mock, all of this uses synthetic data and a mock SHM emulator. In the internal concept, this boundary represented the path from Python UI configuration to a C++ backend connected to a development ECU through a VN-series CAN-FD interface.
+
+```text
+PyQt canvas state
+→ runtime JSON config
+→ SHM config block
+→ C++ backend reads config
+→ DAQ/STIM setup concept
+→ VN-series CAN-FD / development ECU path in internal prototype
+→ realtime measurement values
+→ SHM data snapshot
+→ PyQt canvas + pyqtgraph monitors
+```
+
+---
+
+## SHM JSON Runtime Config Bridge
+
+The SHM bridge is the boundary that makes the frontend/backend separation practical.
+
+### Frontend-to-backend direction
+
+```text
+Python frontend
+→ collect current canvas graph
+→ build runtime JSON payload
+→ write JSON into SHM config block using seqlock-style sequence convention
+→ backend sees new config sequence
+```
+
+### Backend-to-frontend direction
+
+```text
+C++ backend
+→ read runtime JSON config
+→ configure synthetic DAQ/STIM loop
+→ publish latest signal/model/output values into SHM data block
+→ frontend reads latest coherent snapshot
+→ canvas lines, block values, and pyqtgraph windows update
+```
+
+The mock version is intentionally implemented without real hardware access, but the interface shape mirrors the intended production-style split.
+
+---
+
 ## Development Timeline
 
 This mock project represents a public-safe version of an internal engineering concept that was designed, prototyped, stabilized, and translated into a C++-oriented backend structure within approximately **three months**.
 
-The workflow was intentionally staged:
-
 ```text
 architecture definition
 → Python backend rapid prototype
-→ CAN-style / mock XCP-DAQ feasibility validation
+→ hardware-backed feasibility check with VN-series CAN-FD interface and development ECU
+→ CAN-FD/XCP-style DAQ/STIM loop validation
 → timing, parsing, and frontend/backend data exchange refinement
+→ SHM runtime config bridge concept
 → stabilized backend architecture
 → C++ mock backend port
 → public-safe PyQt5/C++/MATLAB portfolio packaging
 ```
-
-The goal was not only to build a GUI, but to validate a complete engineering workflow from MBD-side signal preparation to real-time signal replay, model monitoring, backend abstraction, and future transport extensibility.
 
 ---
 
@@ -89,7 +178,17 @@ Instead of waiting for scarce or unavailable Ethernet-based measurement equipmen
 
 This allowed AI-model input signal flows to be prepared and validated earlier with existing equipment, while preserving a software architecture that could later migrate to a higher-throughput transport layer.
 
-In this public repository, the impact is represented through synthetic data, mock transports, mock A2L/ELF files, and sanitized UI/backend logic.
+In this public repository, the impact is represented through synthetic data, mock transports, mock A2L/ELF files, mock SHM protocol, and sanitized UI/backend logic.
+
+---
+
+## Hardware-Backed Python Prototype
+
+Before translating the backend structure into C++, the initial backend concept was validated through a Python prototype.
+
+The internal prototype used a **Vector VN-series CAN-FD interface connected to a development ECU** to validate the XCP-style acquisition loop, signal parsing behavior, timing characteristics, and frontend/backend data exchange.
+
+The public repository does not include hardware-specific channel settings, real CAN identifiers, production A2L/ELF files, ECU memory addresses, or proprietary signal names. The hardware-backed workflow is represented through mock transports, runtime JSON payloads, and synthetic data.
 
 ---
 
@@ -97,30 +196,17 @@ In this public repository, the impact is represented through synthetic data, moc
 
 This project followed an **architecture-first, AI-assisted development workflow**.
 
-I first defined the system architecture, signal flow, backend abstraction, UI behavior, MBD preparation concept, validation requirements, and public-safe boundaries. To reduce implementation risk, I initially built a Python backend prototype using CAN-style communication libraries and mock XCP/DAQ concepts. The Python prototype was used to validate the acquisition loop, signal parsing structure, timing behavior, frontend/backend data exchange, and basic feasibility of the real-time validation workflow.
+I first defined the system architecture, signal flow, backend abstraction, UI behavior, SHM runtime config bridge, MBD preparation concept, validation requirements, and public-safe boundaries. To reduce implementation risk, I initially built a Python backend prototype using CAN-style communication libraries and mock XCP/DAQ concepts. The internal prototype was validated with a VN-series CAN-FD interface connected to a development ECU, which allowed the XCP-style DAQ loop, signal parsing structure, timing behavior, and frontend/backend data exchange to be checked before the C++ port.
 
-After the backend behavior was validated and stabilized, the same architecture was translated into a C++ mock backend to better represent a production-oriented embedded toolchain. The C++ version keeps the validated runtime structure while making the backend responsibilities clearer:
+After the backend behavior was validated and stabilized, the same architecture was translated into a C++ mock backend to better represent a production-oriented embedded toolchain.
 
-```text
-Python rapid prototype
-→ CAN-style backend feasibility check
-→ DAQ/update loop validation
-→ signal parsing and timing refinement
-→ stabilized backend architecture
-→ C++ mock backend port
-```
-
-AI coding agents were used as implementation accelerators for prototyping, refactoring, UI iteration, and C++ translation. The architecture decisions, validation strategy, debugging direction, public-safe sanitization, and final integration were engineer-owned.
-
-This workflow reflects how I approach engineering under uncertainty: validate the risky parts quickly, stabilize the architecture, and then port the proven structure into a more production-oriented implementation.
+AI coding agents were used as implementation accelerators for prototyping, refactoring, UI iteration, SHM bridge implementation, and C++ translation. The architecture decisions, validation strategy, debugging direction, public-safe sanitization, and final integration were engineer-owned.
 
 ---
 
 ## MBD / Simulink Code Generation Context
 
 The production-style development workflow behind this mock is based on MATLAB/Simulink Model-Based Design.
-
-A typical embedded workflow is:
 
 ```text
 Simulink model
@@ -130,93 +216,22 @@ Simulink model
 → runtime measurement / calibration / validation
 ```
 
-For AI validation, each module owner may need to temporarily convert a conventional module into an AI-learning or AI-validation module. In that case, the input signals required by the AI model must be exposed in a predictable embedded memory layout after code generation.
-
-In a Simulink auto-code-generation workflow, this usually means:
-
-1. Bringing the AI model input signals into a dedicated Simulink interface area.
-2. Connecting those signals to a non-virtual bus.
-3. Configuring the generated interface so the signals can be accessed as external/global data.
-4. Ensuring the generated C struct layout is stable and efficient.
-5. Mapping that generated layout to measurement/calibration metadata such as A2L/ELF-like symbol information.
-
-This matters especially when the available runtime access path is constrained to CAN-FD/XCP-style measurement instead of a higher-throughput Ethernet path.
+For AI validation, the input signals required by the AI model must be exposed in a predictable embedded memory layout after code generation.
 
 ---
 
 ## Power of the MATLAB Bus Optimization Utility
 
-The MATLAB utility is not just a documentation example. It demonstrates an MBD-side automation concept that would be valuable before the generated C code is flashed to the ECU.
-
 ```text
 tools/matlab/buildOptimizedBusObjectFromModelBlock.m
 ```
 
-The utility is designed to do four important things:
+The utility is designed to:
 
-### 1. Automatically find non-virtual buses inside a Simulink model
-
-Given a Simulink model block path, the script searches under that path and finds Bus Creator blocks that are likely used as non-virtual bus interfaces.
-
-This matters because AI model input interfaces may be scattered across module-owned Simulink areas, and manual inspection is slow and error-prone.
-
-### 2. Read the connected signal data types automatically
-
-For each connected input signal, the script reads compiled signal metadata such as:
-
-```text
-signal name
-source block
-source port
-compiled data type
-dimensions
-bus creator path
-```
-
-This prevents developers from manually ordering signals without considering generated C data types.
-
-### 3. Create an optimized bus object in the MATLAB workspace
-
-The script sorts signals from larger data types to smaller data types:
-
-```text
-double / uint64 / int64
-single / uint32 / int32
-uint16 / int16
-boolean / uint8 / int8
-```
-
-Then it generates a `Simulink.Bus` object in the MATLAB base workspace.
-
-The purpose is to make the generated C struct layout more stable and padding-aware. A manually ordered bus such as this:
-
-```text
-uint8
-double
-uint16
-single
-boolean
-uint32
-```
-
-can be reorganized into a top-down order such as:
-
-```text
-double
-uint32 / single
-uint16
-uint8 / boolean
-```
-
-This is especially useful when a validation tool needs predictable access to generated global/external data through measurement metadata.
-
-### 4. Apply the optimized order back into the Simulink model
-
-The key point is that the script does not stop at creating a bus object.
-
-It can also reconnect the Bus Creator input lines in the optimized order so the Simulink model itself reflects the final bus ordering.
-
-That means the optimized order can flow into the next auto code generation step:
+1. Automatically find non-virtual buses inside a Simulink model.
+2. Read connected signal data types automatically.
+3. Create a padding-aware optimized `Simulink.Bus` object in the MATLAB workspace.
+4. Apply the optimized signal order back into the Simulink model.
 
 ```text
 optimized Simulink bus connection order
@@ -225,42 +240,6 @@ optimized Simulink bus connection order
 → more predictable A2L/ELF-style runtime access
 → easier real-time validation under CAN-FD/XCP constraints
 ```
-
-This fourth step is the main reason the script is useful. It reduces manual mistakes from module developers who may not consider data type size, padding, or signal order when wiring AI model inputs.
-
----
-
-## MATLAB Utility Example
-
-```matlab
-[busObj, report] = buildOptimizedBusObjectFromModelBlock( ...
-    "demo_model/AI_Input_Interface", ...
-    "AI_Input_OptimizedBus", ...
-    "ApplyToModel", true);
-```
-
-Optional arguments:
-
-```matlab
-"AssignToBase", true
-"ApplyToModel", true
-"CreateBackup", true
-"Verbose", true
-```
-
-Expected conceptual output:
-
-```text
-AI_Input_OptimizedBus
-├── signal_speed_double      double
-├── signal_model_state_u32   uint32
-├── signal_yaw_rate_single   single
-├── signal_counter_u16       uint16
-├── signal_flag_bool         boolean
-└── signal_status_u8         uint8
-```
-
-This utility is included as a public-safe mock. It does not include real model paths, internal bus objects, production code generation settings, or real company signal names.
 
 ---
 
@@ -271,78 +250,45 @@ This utility is included as a public-safe mock. It does not include real model p
 - Drag/drop signals from the A2L signal list.
 - Add model blocks.
 - Move blocks freely.
-- Select blocks individually.
-- Ctrl-click to multi-select blocks.
-- Rubber-band selection by dragging an area.
+- Ctrl-click and rubber-band multi-select.
 - Delete selected blocks with `Delete` or `Backspace`.
-- Middle-mouse panning, similar to Simulink-style navigation.
+- Middle-mouse panning.
 - Click-to-connect port wiring.
 - Cancel pending connection with `Esc` or right-click.
 
 ### Dynamic Model Blocks
 
-Double-click a model block to open the configuration dialog:
-
 - Select `.py` script or `.onnx` model file.
-- Set input count.
-- Set output count.
-- The block graphically updates its input/output ports.
-- Existing invalid connections are pruned when port count is reduced.
+- Set input count and output count.
+- Graphically update model input/output ports.
+- Prune invalid old connections when port count is reduced.
 
-### Independent Port Connections
+### Runtime Config Export
 
-Each model input/output has its own graphical port. Each connection stores:
-
-```text
-source block
-source port index
-destination block
-destination port index
-data key
-```
+- Export active canvas nodes and edges.
+- Include selected measurements and characteristics.
+- Include model block metadata and model file paths.
+- Build backend runtime JSON.
+- Write runtime JSON into SHM config block.
 
 ### Real-Time Data-Flow Visualization
 
-During replay:
-
 - Active connection lines turn white.
-- Inactive connection lines remain green.
-- Selected inactive lines are highlighted.
-- Double-clicking a line opens a floating pyqtgraph window for real-time data-flow monitoring.
-
-### Floating Graph Windows with pyqtgraph
-
-The **ALL Graph** button opens floating real-time graphs for:
-
-- DAQ / measurement signals
-- model output values
-- ECU write value
-- jitter / replay timing metrics
-
-### Mock A2L and ELF Integration
-
-The project includes public-safe mock metadata:
-
-- synthetic A2L signal definitions
-- synthetic ELF symbol map
-- synthetic signal addresses
-- synthetic measurement and characteristic data
-
-No real ECU calibration metadata is included.
+- Double-clicking a line opens a floating pyqtgraph window.
+- **ALL Graph** opens floating real-time graphs.
 
 ### C++ Mock Backend
-
-The repository includes a buildable C++ mock backend to demonstrate embedded/backend implementation capability. The C++ code is intentionally mock-only and does not communicate with real hardware.
 
 The C++ backend is structured around:
 
 ```text
 transport abstraction
+runtime JSON config reader
 synthetic DAQ acquisition
 synthetic STIM/write-back path
 signal database
 staged model pipeline
-shared-memory-style snapshot buffer
+shared-memory-style config/data blocks
 realtime loop with jitter metrics
 ```
 
@@ -356,7 +302,10 @@ realtime loop with jitter metrics
 | Auto code generation concept | Simulink Coder / Embedded Coder-style workflow |
 | Embedded interface concept | Generated C struct / external global data |
 | MBD automation utility | MATLAB script for non-virtual bus detection, data-type sorting, and Simulink bus rewiring |
+| Hardware-backed prototype context | VN-series CAN-FD interface + development ECU validation |
 | Rapid backend prototype | Python, CAN-style communication libraries, mock XCP/DAQ concepts |
+| Runtime configuration exchange | JSON payload over shared-memory-style config block |
+| Data snapshot exchange | Shared-memory-style data block with seqlock convention |
 | GUI | PyQt5 |
 | Real-time plotting | pyqtgraph |
 | Backend mock | Python async worker |
@@ -381,6 +330,7 @@ realtime-vehicle-ai-validation-studio/
 ├── README.md
 ├── _uiux/
 ├── _backend/
+│   ├── _shared_memory.py
 │   ├── mock_assets/
 │   └── cpp/
 ├── _utility/
@@ -389,6 +339,8 @@ realtime-vehicle-ai-validation-studio/
 │       └── buildOptimizedBusObjectFromModelBlock.m
 ├── tests/
 └── docs/
+    ├── architecture_public.html
+    ├── shm_runtime_protocol.md
     └── media/
         ├── demo.gif
         └── screenshot_main.png
@@ -414,13 +366,6 @@ pip install -r requirements.txt
 python main.py
 ```
 
-If Qt style rendering behaves differently on a local Windows machine, the stylesheet can be disabled for debugging:
-
-```cmd
-set E2E_MOCK_DISABLE_QSS=1
-python main.py
-```
-
 ---
 
 ## Building the C++ Mock Backend
@@ -431,76 +376,7 @@ cmake -S . -B build
 cmake --build build
 ```
 
-The Python GUI does not require the C++ executable to run. The C++ mock exists to demonstrate backend structure and C++ implementation capability.
-
----
-
-## Running the MATLAB Mock Utility
-
-Open MATLAB, add the repository root to the MATLAB path, then call:
-
-```matlab
-[busObj, report] = buildOptimizedBusObjectFromModelBlock( ...
-    "demo_model/AI_Input_Interface", ...
-    "AI_Input_OptimizedBus", ...
-    "ApplyToModel", true);
-```
-
-This is a mock utility script. It is intended to demonstrate the workflow concept and may require adaptation for a real Simulink model, real code generation settings, and a real company-specific modeling guideline.
-
----
-
-## Architecture Overview
-
-```text
-+----------------------------------------------------------+
-| MATLAB / Simulink MBD Layer                              |
-| - find non-virtual bus creators                          |
-| - inspect connected signal data types                    |
-| - generate optimized Simulink.Bus object                 |
-| - apply optimized order back into the model              |
-| - generated C struct layout concept                      |
-+--------------------------+-------------------------------+
-                           |
-                           v
-+----------------------------------------------------------+
-| Backend Prototype / Validation Layer                     |
-| - Python rapid prototype                                 |
-| - CAN-style backend feasibility check                    |
-| - mock XCP/DAQ loop validation                           |
-| - timing and parsing behavior refinement                 |
-+--------------------------+-------------------------------+
-                           |
-                           v
-+----------------------------------------------------------+
-| C++ Backend Mock                                         |
-| - transport abstraction                                  |
-| - synthetic DAQ acquisition                              |
-| - synthetic STIM/write-back path                         |
-| - shared-memory-style snapshot buffer                    |
-| - realtime loop / jitter metrics                         |
-+--------------------------+-------------------------------+
-                           |
-                           v
-+----------------------------------------------------------+
-| PyQt5 Frontend                                           |
-| - signal list                                            |
-| - validation canvas                                      |
-| - model configuration dialog                             |
-| - pyqtgraph monitors                                     |
-+--------------------------+-------------------------------+
-                           |
-                           v
-+----------------------------------------------------------+
-| Mock Data / Metadata Layer                               |
-| - synthetic A2L                                          |
-| - synthetic ELF symbols                                  |
-| - synthetic replay data                                  |
-| - placeholder model files                                |
-+----------------------------------------------------------+
-```
-
-The frontend does not depend on a single hardware transport. The backend layer is designed as an adapter boundary so the transport can evolve independently from the validation UI.
+The Python GUI can run with the mock backend. The C++ backend exists to demonstrate the intended production-oriented backend structure and runtime SHM protocol boundary.
 
 ---
 
@@ -515,6 +391,8 @@ This repository intentionally avoids:
 - internal bus object definitions
 - internal signal names
 - internal memory addresses
+- real CAN identifiers
+- hardware channel settings
 - proprietary model files
 - company-specific validation logic
 - hardware-specific confidential implementation details
@@ -527,6 +405,7 @@ The following are synthetic:
 - ECU addresses
 - Simulink paths
 - bus object names
+- runtime JSON payload examples
 - replay values
 - model names
 - model outputs
@@ -547,6 +426,8 @@ The following are synthetic:
 - architecture-first engineering workflow
 - approximately 3-month concept-to-working-tool execution
 - Python rapid prototyping for backend feasibility validation
+- hardware-backed feasibility validation with a VN-series CAN-FD interface and development ECU
+- SHM-based runtime configuration and data snapshot exchange
 - AI-assisted implementation acceleration with engineer-owned architecture
 - C++ backend porting from validated backend structure
 - PyQt5 desktop tool development
@@ -562,23 +443,6 @@ The following are synthetic:
 
 ---
 
-## Limitations
-
-This is a mock portfolio project.
-
-It does not:
-
-- connect to a real ECU
-- perform real XCP communication
-- perform real Ethernet measurement
-- parse production A2L/ELF files
-- include real Simulink models
-- run proprietary AI models
-- guarantee hard real-time timing
-- represent any confidential production tool
-
----
-
 ## License / Usage
 
 This repository is provided as a public-safe portfolio demonstration.
@@ -587,27 +451,6 @@ No open-source license is currently granted.
 All rights are reserved by the author unless explicitly stated otherwise.
 
 You may view this repository for portfolio and evaluation purposes, but you may not copy, redistribute, modify, or use the code, architecture, assets, or documentation for commercial or production purposes without written permission.
-
----
-
-## Roadmap
-
-Possible future extensions:
-
-- Ethernet transport adapter mock
-- SOME/IP-style replay adapter
-- MDF4/BLF log replay support
-- ONNX Runtime integration
-- model input/output schema validation
-- save/load canvas layout
-- node grouping
-- signal unit conversion editor
-- replay timeline scrubber
-- validation rule engine
-- automated report export
-- Simulink model advisor-style interface checks
-- bus object diff/report generation
-- generated C struct packing report
 
 ---
 
@@ -621,6 +464,7 @@ matlab
 simulink
 model-based-design
 embedded-c
+shared-memory
 vehicle-ai
 adas
 real-time-visualization
