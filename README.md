@@ -42,7 +42,8 @@ docs/
 
 Public-safe architecture documentation is included here:
 
-[Open public architecture document](docs/architecture_public.html)
+- [View interactive architecture document](https://jwhwang91.github.io/realtime-vehicle-ai-validation-studio/architecture_public.html)
+- [View source HTML](docs/architecture_public.html)
 
 `architecture_public.html` contains block diagrams for the overall system, runtime data flow, C++ backend, SHM JSON bridge, MATLAB/Simulink bus optimization, and PyQt5 validation canvas.
 
