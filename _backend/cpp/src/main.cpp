@@ -1,5 +1,7 @@
 #include "config.h"
 #include "shm_layout.h"
+#include "xcp_protocol.h"
+#include <algorithm>
 #include <atomic>
 #include <chrono>
 #include <cmath>
@@ -7,11 +9,6 @@
 #include <iostream>
 #include <string>
 #include <thread>
-
-extern bool open_mock_vector_channel();
-extern bool configure_mock_xcp_session(const BackendConfig& cfg);
-extern void write_mock_daq_snapshot(ShmDataBlock& block, double t, uint64_t ts);
-extern void consume_mock_stim_snapshot(const ShmDataBlock& out);
 
 static uint64_t now_us() {
     using namespace std::chrono;
@@ -78,21 +75,26 @@ int main(int argc, char** argv) {
     }
     configure_mock_xcp_session(cfg);
 
-    std::strncpy(shm.control.status.data(), "mock running", shm.control.status.size() - 1);
+    shm_write_status(shm.control, "mock running");
     shm.control.command.store(1);
     shm.control.run_state.store(1);
 
     for (uint64_t tick = 0; tick < 200; ++tick) {
         const double t = static_cast<double>(tick) * static_cast<double>(cfg.cycle_ms) / 1000.0;
-        write_mock_daq_snapshot(shm.shm_in, t, now_us());
+        write_mock_daq_snapshot(shm.shm_in, cfg, t, now_us());
+
+        // measurements -> model graph -> STIM/ECU write value, published to shm_out.
+        const double ecu_value = evaluate_mock_model_pipeline(shm.shm_in, shm.model);
+        write_mock_stim_snapshot(shm.shm_out, cfg, ecu_value, now_us());
+
         shm.control.tick_count = tick;
         if (tick % 20 == 0) {
             std::cout << "[mock-backend] tick=" << tick
                       << " signal1=" << shm.shm_in.signals[0].value
                       << " signal4=" << shm.shm_in.signals[3].value
                       << std::endl;
+            consume_mock_stim_snapshot(shm.shm_out);
         }
-        consume_mock_stim_snapshot(shm.shm_out);
         std::this_thread::sleep_for(std::chrono::milliseconds(cfg.cycle_ms));
     }
     shm.control.command.store(2);

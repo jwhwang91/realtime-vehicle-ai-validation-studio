@@ -1,6 +1,7 @@
 #pragma once
 #include "config.h"
 #include "can_frame.h"
+#include "shm_layout.h"
 #include <cstdint>
 #include <vector>
 
@@ -32,3 +33,15 @@ struct ParsedDaqPacket {
 bool configure_mock_xcp_session(const BackendConfig& cfg);
 xcp_mock::ParsedDaqPacket parse_mock_daq_frame(const RxFrame& frame, const OdtChunk& odt);
 TxFrame make_mock_stim_download_frame(const SigDescriptor& characteristic, double value);
+
+// Deterministic synthetic waveform for a signal name at elapsed time t (seconds).
+double mock_signal_value(const std::string& name, double t);
+
+// SHM publish/consume helpers.  These are declared here rather than re-declared
+// per translation unit so the seqlock writers cannot drift out of sync.
+void shm_write_entry(ShmSigEntry& entry, const SigDescriptor& desc, double value, uint64_t ts);
+void shm_write_status(ControlBlock& control, const char* text);
+void write_mock_daq_snapshot(ShmDataBlock& block, const BackendConfig& cfg, double t, uint64_t ts);
+double evaluate_mock_model_pipeline(const ShmDataBlock& in, ModelStateBlock& model);
+void write_mock_stim_snapshot(ShmDataBlock& out, const BackendConfig& cfg, double ecu_value, uint64_t ts);
+void consume_mock_stim_snapshot(const ShmDataBlock& out);

@@ -40,6 +40,18 @@ struct ShmJsonConfigBlock {
     std::array<char, SHM_CONFIG_JSON_BYTES> payload{};
 };
 
+// Intermediate model-pipeline state.  The mock chains four synthetic stages so
+// the SHM boundary carries the same shape as the internal model graph:
+//   measurements -> model1_a/model1_b -> model2/model3 -> model4 -> ECU write.
+struct ModelStateBlock {
+    double model1_a = 0.0;
+    double model1_b = 0.0;
+    double model2 = 0.0;
+    double model3 = 0.0;
+    double model4 = 0.0;
+    double ecu_write_value = 0.0;
+};
+
 struct ControlBlock {
     std::atomic<uint32_t> command{0};     // 0 idle, 1 start, 2 stop
     std::atomic<uint32_t> run_state{0};   // 0 stopped, 1 running
@@ -55,4 +67,5 @@ struct MockShmBlock {
     ShmJsonConfigBlock config_json;  // frontend -> backend runtime JSON
     ShmDataBlock shm_in;             // backend -> frontend measurement values
     ShmDataBlock shm_out;            // backend -> frontend model/STIM values
+    ModelStateBlock model;           // intermediate model stages for review/debug
 };

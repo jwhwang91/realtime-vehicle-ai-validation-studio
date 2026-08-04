@@ -354,8 +354,31 @@ realtime-vehicle-ai-validation-studio/
 ```bash
 git clone https://github.com/<your-github-id>/realtime-vehicle-ai-validation-studio.git
 cd realtime-vehicle-ai-validation-studio
+```
+
+Create and activate a virtual environment:
+
+```bash
+# macOS / Linux
+python3 -m venv .venv
+source .venv/bin/activate
+```
+
+```powershell
+# Windows (PowerShell)
 python -m venv .venv
-.venv\Scripts\activate
+.venv\Scripts\Activate.ps1
+```
+
+```bat
+:: Windows (cmd.exe)
+python -m venv .venv
+.venv\Scripts\activate.bat
+```
+
+Then install the dependencies:
+
+```bash
 pip install -r requirements.txt
 ```
 
@@ -371,10 +394,36 @@ python main.py
 
 ## Building the C++ Mock Backend
 
+### Prerequisites
+
+CMake 3.16 or newer must be installed and on `PATH`, along with a C++17 compiler.
+
+```bash
+# macOS
+brew install cmake
+
+# Ubuntu / Debian
+sudo apt install cmake build-essential
+
+# Windows
+winget install Kitware.CMake
+```
+
+Verify with `cmake --version`. If CMake is missing, `build_cpp.py` fails with
+`RuntimeError: CMake was not found on PATH.`
+
+### Build
+
 ```bash
 cd _backend/cpp
 cmake -S . -B build
 cmake --build build
+```
+
+Or from the repository root, using the helper that also resolves the executable path:
+
+```bash
+python build_cpp.py
 ```
 
 The Python GUI can run with the mock backend. The C++ backend exists to demonstrate the intended production-oriented backend structure and runtime SHM protocol boundary.

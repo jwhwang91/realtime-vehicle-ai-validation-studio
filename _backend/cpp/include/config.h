@@ -25,6 +25,7 @@ struct BackendConfig {
     std::vector<SigDescriptor> characteristics;
 };
 
+uint16_t datatype_size_bytes(const std::string& datatype);
 BackendConfig load_mock_config();
 BackendConfig load_mock_config_from_json(const std::string& runtime_json);
 std::vector<OdtChunk> build_mock_odt_chunks(const BackendConfig& cfg, uint16_t max_payload_bytes = 48);
